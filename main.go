@@ -1023,8 +1023,12 @@ func ripTrack(track *task.Track, token string, mediaUserToken string) {
 		"artist=AppleMusic",
 	}
 	if Config.EmbedCover {
-		if (strings.Contains(track.PreID, "pl.") || strings.Contains(track.PreID, "ra.")) && Config.DlAlbumcoverForPlaylist {
-			track.CoverPath, err = writeCover(track.SaveDir, track.ID, track.Resp.Attributes.Artwork.URL)
+		if (strings.Contains(track.PreID, "pl.") || strings.Contains(track.PreID, "ra.")) && (Config.DlAlbumcoverForPlaylist || Config.UseSongInfoForPlaylist) {
+			artworkURL := track.Resp.Attributes.Artwork.URL
+			if Config.UseSongInfoForPlaylist && track.AlbumData.Attributes.Artwork.URL != "" {
+				artworkURL = track.AlbumData.Attributes.Artwork.URL
+			}
+			track.CoverPath, err = writeCover(track.SaveDir, track.ID, artworkURL)
 			if err != nil {
 				fmt.Println("Failed to write cover.")
 			}
@@ -1038,7 +1042,7 @@ func ripTrack(track *task.Track, token string, mediaUserToken string) {
 		counter.Error++
 		return
 	}
-	if (strings.Contains(track.PreID, "pl.") || strings.Contains(track.PreID, "ra.")) && Config.DlAlbumcoverForPlaylist {
+	if (strings.Contains(track.PreID, "pl.") || strings.Contains(track.PreID, "ra.")) && (Config.DlAlbumcoverForPlaylist || Config.UseSongInfoForPlaylist) {
 		if err := os.Remove(track.CoverPath); err != nil {
 			fmt.Printf("Error deleting file: %s\n", track.CoverPath)
 			counter.Error++
