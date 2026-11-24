@@ -263,8 +263,12 @@ func (r *Runner) ripTrack(track *model.Track, token string, mediaUserToken strin
 	// 将 fMP4 解碎片为普通 MP4；元数据和封面统一交给后续 writeMP4Tags 写入。
 	removeCoverAfterWrite := false
 	if r.Config.Metadata.Artwork.Embed {
-		if (strings.Contains(track.PreID, "pl.") || strings.Contains(track.PreID, "ra.")) && r.Config.Metadata.Artwork.DlForPlaylist {
-			track.CoverPath, err = r.writeCover(track.SaveDir, track.ID, track.Resp.Attributes.Artwork.URL)
+		if (strings.Contains(track.PreID, "pl.") || strings.Contains(track.PreID, "ra.")) && (r.Config.Metadata.Artwork.DlForPlaylist || r.Config.Metadata.Tags.UseSongInfoForPlaylist) {
+			artworkURL := track.Resp.Attributes.Artwork.URL
+			if r.Config.Metadata.Tags.UseSongInfoForPlaylist && track.AlbumData.Attributes.Artwork.URL != "" {
+				artworkURL = track.AlbumData.Attributes.Artwork.URL
+			}
+			track.CoverPath, err = r.writeCover(track.SaveDir, track.ID, artworkURL)
 			if err != nil {
 				fmt.Println("Failed to write cover.")
 			} else {
